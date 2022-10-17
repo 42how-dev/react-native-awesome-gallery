@@ -26,7 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useVector } from 'react-native-redash';
-import { clamp, withDecaySpring, withRubberBandClamp } from './utils';
+import { clamp, withDecaySpring, withRubberBandClamp } from './utils'
 
 const rtl = I18nManager.isRTL;
 
@@ -116,7 +116,7 @@ type Props<T> = EventsCallbacks & {
   setRef: (index: number, value: ItemRef) => void;
 };
 
-type ItemRef = { reset: (animated: boolean) => void };
+type ItemRef = { reset: (animated: boolean) => void, scaleType: (index?: number, values?: number, offsetValue?: number) => void, };
 
 const ResizableImage = React.memo(
   <T extends any>({
@@ -214,6 +214,14 @@ const ResizableImage = React.memo(
       offset.y.value = animated ? withTiming(0) : 0;
       translation.x.value = animated ? withTiming(0) : 0;
       translation.y.value = animated ? withTiming(0) : 0;
+    };
+    const scaleTypeValues = (index: number, values: number, offsetValue: number) => {
+      'worklet';
+      scale.value = values ? values : 1;
+      offset.x.value = 0;
+      offset.y.value =  offsetValue ? offsetValue: 0;
+      translation.x.value = 0;
+      translation.y.value = 0;
     };
 
     const getEdgeX = () => {
@@ -316,6 +324,7 @@ const ResizableImage = React.memo(
     useEffect(() => {
       setRef(index, {
         reset: (animated: boolean) => resetValues(animated),
+        scaleType: (index?: number, values?: number, offsetValue?: number) => scaleTypeValues(index, values, offsetValue),
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [index]);
@@ -857,6 +866,7 @@ const ResizableImage = React.memo(
 
 export type GalleryRef = {
   setIndex: (newIndex: number) => void;
+  scaleType: (index?: number, values?: number, offsetValue?: number) => void;
   reset: (animated?: boolean) => void;
 };
 
@@ -956,6 +966,9 @@ const GalleryComponent = <T extends any>(
   }, [windowDimensions]);
 
   useImperativeHandle(ref, () => ({
+    scaleType(index?: number, values?: number, offsetValue?: number){
+      refs.current[index].scaleType(index, values, offsetValue);
+    },
     setIndex(newIndex: number) {
       refs.current?.[index].reset(false);
       setIndex(newIndex);
@@ -1047,3 +1060,4 @@ const Gallery = React.forwardRef(GalleryComponent) as <T extends any>(
 ) => React.ReactElement;
 
 export default Gallery;
+
